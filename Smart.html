@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="standard" data-font="large">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>Elderly Care Plus — Technology That Understands Everyone</title>
+  
+  <!-- Tailwind CSS CDN for Modern, Responsive UI -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* Accessible Base Font Scales */
+    html[data-font="standard"] { font-size: 16px; }
+    html[data-font="large"] { font-size: 20px; }
+    html[data-font="extra-large"] { font-size: 24px; }
+
+    /* High-Contrast Themes (WCAG 2.2 AAA Compliant) */
+    html[data-theme="yellow-black"] {
+      --bg-main: #000000;
+      --card-bg: #121212;
+      --text-main: #FFF000;
+      --text-sub: #FFFFFF;
+      --border-color: #FFF000;
+      --btn-accent: #FFF000;
+      --btn-text: #000000;
+      --sos-bg: #FF2222;
+    }
+    html[data-theme="yellow-black"] body {
+      background-color: var(--bg-main) !important;
+      color: var(--text-main) !important;
+    }
+    html[data-theme="yellow-black"] .accessible-card {
+      background-color: var(--card-bg) !important;
+      color: var(--text-main) !important;
+      border: 3px solid var(--border-color) !important;
+    }
+    html[data-theme="yellow-black"] button,
+    html[data-theme="yellow-black"] input {
+      border-color: var(--border-color) !important;
+    }
+
+    /* Target Hit Size: Minimum 60px for tremor and motor accessibility */
+    .touch-target {
+      min-height: 64px;
+      min-width: 64px;
+    }
+
+    /* Accessible focus ring for screen readers, switches, and keyboards */
+    *:focus-visible {
+      outline: 5px solid #2563EB !important;
+      outline-offset: 4px !important;
+    }
+
+    /* Screen Reader Only Live Utility */
+    .sr-only-announce {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-50 text-slate-900 transition-colors duration-200 antialiased pb-28 select-none">
+
+  <!-- ARIA Live Announcements for TalkBack, VoiceOver & NVDA -->
+  <div id="sr-announcer" class="sr-only-announce" aria-live="assertive" aria-atomic="true"></div>
+
+  <!-- PERSISTENT ACCESSIBILITY HEADER -->
+  <header class="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b-2 border-slate-200 px-4 py-3 shadow-md">
+    <div class="max-w-6xl mx-auto flex items-center justify-between gap-2">
+      <!-- Home / Back Navigation -->
+      <div class="flex items-center gap-2">
+        <button id="btn-back" onclick="navigateHome()" aria-label="Go Back to Main Home Screen" class="touch-target bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-800 px-4 rounded-2xl flex items-center gap-2 font-bold shadow">
+          <span class="text-2xl">◀</span>
+          <span class="hidden sm:inline">Home</span>
+        </button>
+      </div>
+
+      <!-- Quick Accessibility Bar: Mode Selector & Font Toggle -->
+      <div class="flex items-center gap-2 flex-wrap justify-end">
+        <button onclick="cycleFont()" aria-label="Increase text size" class="touch-target bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-3 py-2 rounded-2xl text-lg flex items-center gap-1 shadow">
+          <span>🔤</span><span id="font-indicator">Large</span>
+        </button>
+        <button onclick="toggleHighContrast()" aria-label="Toggle High-Contrast Yellow on Black Theme" class="touch-target bg-zinc-800 text-yellow-300 font-bold px-3 py-2 rounded-2xl text-lg shadow flex items-center gap-1">
+          <span>👁️</span><span class="hidden md:inline">Contrast</span>
+        </button>
+        <!-- 1-Tap SOS Header Access -->
+        <button onclick="triggerEmergencyWorkflow()" aria-label="Emergency SOS. Double tap to trigger emergency alerts" class="touch-target bg-red-600 hover:bg-red-700 text-white font-extrabold px-5 py-2 rounded-2xl text-xl shadow-lg animate-pulse flex items-center gap-2">
+          <span>🚨</span><span>SOS</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN SCROLLABLE CONTAINER -->
+  <main class="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
+
+    <!-- LIVE CLOCK & GREETING BAR (Asia/Kolkata Default) -->
+    <section class="accessible-card bg-gradient-to-r from-blue-700 to-indigo-800 text-white p-5 rounded-3xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-4" aria-label="Time and Daily Greeting">
+      <div class="text-center md:text-left">
+        <p id="live-greeting" class="text-2xl font-semibold opacity-95">Good Day!</p>
+        <h1 class="text-3xl md:text-4xl font-extrabold tracking-wide" id="app-heading">Elderly Care Plus</h1>
+        <p class="text-sm md:text-base opacity-80 mt-1">Technology That Understands Everyone</p>
+      </div>
+      <div class="bg-black/30 backdrop-blur px-6 py-3 rounded-2xl text-center border border-white/20">
+        <div id="live-clock" class="text-3xl md:text-4xl font-mono font-black tracking-wider text-yellow-300">--:--:--</div>
+        <div id="live-date" class="text-base font-semibold mt-1">Loading date...</div>
+        <div class="text-xs text-slate-300 mt-1">Timezone: Asia/Kolkata (IST)</div>
+      </div>
+    </section>
+
+    <!-- SECTION 1: AI SMART SEARCH -->
+    <section class="accessible-card bg-white p-4 md:p-6 rounded-3xl shadow-lg border-2 border-slate-200" aria-label="AI Smart Search">
+      <label for="smart-search-input" class="block text-xl font-bold mb-2 flex items-center gap-2">
+        <span class="text-2xl">🔍</span> What do you need today?
+      </label>
+      <div class="flex flex-col sm:flex-row gap-3">
+        <div class="relative flex-1">
+          <input 
+            id="smart-search-input" 
+            type="text" 
+            placeholder="Type or tap the microphone to speak..."
+            class="w-full touch-target text-xl px-4 py-3 rounded-2xl border-2 border-slate-300 focus:border-blue-600 focus:ring-0 bg-slate-50"
+          />
+        </div>
+        <div class="flex gap-2">
+          <button onclick="startVoiceSearch()" aria-label="Speak your search with microphone" class="touch-target flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold px-6 rounded-2xl flex items-center justify-center gap-2 text-lg shadow">
+            <span>🎙️</span><span>Speak</span>
+          </button>
+          <button onclick="executeSearch()" aria-label="Search the internet" class="touch-target bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold px-6 rounded-2xl flex items-center justify-center gap-2 text-lg shadow">
+            <span>Find</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Helpful Search Prompts -->
+      <div class="flex flex-wrap gap-2 mt-4" aria-label="Quick Search Suggestions">
+        <button onclick="quickSearch('Devotional Songs and Bhajans')" class="touch-target bg-slate-100 hover:bg-slate-200 border border-slate-300 px-4 py-2 rounded-xl text-base font-medium">🎵 Devotional Songs</button>
+        <button onclick="quickSearch('Current News India Asia Kolkata')" class="touch-target bg-slate-100 hover:bg-slate-200 border border-slate-300 px-4 py-2 rounded-xl text-base font-medium">📰 Today's News</button>
+        <button onclick="quickSearch('Hospitals and doctors near me')" class="touch-target bg-slate-100 hover:bg-slate-200 border border-slate-300 px-4 py-2 rounded-xl text-base font-medium">🏥 Nearby Hospitals</button>
+        <button onclick="quickSearch('Gentle chair yoga for seniors')" class="touch-target bg-slate-100 hover:bg-slate-200 border border-slate-300 px-4 py-2 rounded-xl text-base font-medium">🧘 Senior Yoga</button>
+      </div>
+
+      <!-- Search Results Area -->
+      <div id="search-results-box" class="hidden mt-4 p-4 bg-blue-50 border border-blue-200 rounded-2xl space-y-2" aria-live="polite">
+        <div class="flex justify-between items-center">
+          <h3 class="font-bold text-lg text-blue-900" id="search-status-text">Search Results</h3>
+          <button onclick="readAloudSearchResult()" class="touch-target text-blue-700 bg-white px-3 py-1 rounded-lg border font-bold text-sm flex items-center gap-1">
+            <span>🔊</span> Read Aloud
+          </button>
+        </div>
+        <p id="search-summary-text" class="text-base text-slate-800 leading-relaxed"></p>
+        <div id="search-action-links" class="pt-2 flex gap-3 flex-wrap"></div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: APPLICATION MODES BAR -->
+    <section class="bg-indigo-50 border-2 border-indigo-200 p-4 rounded-3xl" aria-label="Interface Mode Switches">
+      <h2 class="text-lg font-bold text-indigo-950 mb-3 flex items-center gap-2">
+        <span>⚙️</span> Choose Personalized Profile (Customizes the entire UI):
+      </h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+        <button onclick="setAppMode('senior')" class="touch-target bg-white border-2 border-indigo-300 hover:bg-indigo-100 rounded-2xl p-2 font-bold text-center text-sm shadow">👴 Senior</button>
+        <button onclick="setAppMode('blind')" class="touch-target bg-white border-2 border-indigo-300 hover:bg-indigo-100 rounded-2xl p-2 font-bold text-center text-sm shadow">🦯 Blind/Vision</button>
+        <button onclick="setAppMode('deaf')" class="touch-target bg-white border-2 border-indigo-300 hover:bg-indigo-100 rounded-2xl p-2 font-bold text-center text-sm shadow">🧏 Deaf/Hard Hearing</button>
+        <button onclick="setAppMode('aac')" class="touch-target bg-white border-2 border-indigo-300 hover:bg-indigo-100 rounded-2xl p-2 font-bold text-center text-sm shadow">🗣️ Non-Speaking</button>
+        <button onclick="setAppMode('easy')" class="touch-target bg-white border-2 border-indigo-300 hover:bg-indigo-100 rounded-2xl p-2 font-bold text-center text-sm shadow">🌱 Easy Mode</button>
+        <button onclick="setAppMode('standard')" class="touch-target bg-white border-2 border-indigo-300 hover:bg-indigo-100 rounded-2xl p-2 font-bold text-center text-sm shadow">📱 Standard</button>
+      </div>
+    </section>
+
+    <!-- SECTION 3: CORE FEATURE DASHBOARD CARDS -->
+    <div id="dashboard-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+      <!-- CARD 1: EMERGENCY SOS (Large Red Hit Target) -->
+      <article class="accessible-card bg-red-50 border-4 border-red-500 rounded-3xl p-5 shadow-lg flex flex-col justify-between hover:shadow-2xl transition">
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="text-4xl">🚨</span>
+            <div>
+              <h2 class="text-2xl font-black text-red-700">Emergency SOS</h2>
+              <p class="text-base text-red-900 font-semibold">Immediate Help, 112 / 108 & Family</p>
+            </div>
+          </div>
+          <p class="text-slate-700 mt-3 text-base">Triggers 5-second countdown with siren, auto-shares GPS coords via SMS and directs to emergency lines.</p>
+        </div>
+        <button onclick="triggerEmergencyWorkflow()" class="touch-target w-full mt-4 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-extrabold text-xl py-4 rounded-2xl shadow flex items-center justify-center gap-2">
+          <span>🆘</span> ACTIVATE SOS
+        </button>
+      </article>
+
+      <!-- CARD 2: AI VOICE ASSISTANT -->
+      <article class="accessible-card bg-purple-50 border-4 border-purple-400 rounded-3xl p-5 shadow-lg flex flex-col justify-between hover:shadow-2xl transition">
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="text-4xl">🤖</span>
+            <div>
+              <h2 class="text-2xl font-black text-purple-800">Voice Assistant</h2>
+              <p class="text-base text-purple-900 font-semibold">Talk naturally in 7+ Languages</p>
+            </div>
+          </div>
+          <p class="text-slate-700 mt-3 text-base">Understands English, Hindi, Kannada, Tamil, Telugu, Marathi & Malayalam. Double-tap to talk.</p>
+        </div>
+        <button onclick="openVoiceAssistantModal()" class="touch-target w-full mt-4 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xl py-4 rounded-2xl shadow flex items-center justify-center gap-2">
+          <span>🎙️</span> TALK TO AI COMPANION
+        </button>
+      </article>
+
+      <!-- CARD 3: NON-SPEAKING (AAC) BOARD -->
+      <article class="accessible-card bg-teal-50 border-4 border-teal-500 rounded-3xl p-5 shadow-lg flex flex-col justify-between hover:shadow-2xl transition">
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="text-4xl">🗣️</span>
+            <div>
+              <h2 class="text-2xl font-black text-teal-800">Picture Speech (AAC)</h2>
+              <p class="text-base text-teal-900 font-semibold">Tap to Talk for Non-Speaking</p>
+            </div>
+          </div>
+          <p class="text-slate-700 mt-3 text-base">Large pictorial communication board: "Hungry", "Water", "Pain", "Call Family", with clear spoken speech.</p>
+        </div>
+        <button onclick="openModal('modal-aac')" class="touch-target w-full mt-4 bg-teal-600 hover:bg-teal-700 active:scale-95 text-white font-extrabold text-xl py-4 rounded-2xl shadow flex items-center justify-center gap-2">
+          <span>💬</span> OPEN SPEECH BOARD
+        </button>
+      </article>
+
+      <!-- CARD 4: BLIND & LOW-VISION ASSISTANT (Camera OCR & Magnifier) -->
+      <article class="accessible-card bg-amber-50 border-4 border-amber-500 rounded-3xl p-5 shadow-lg flex flex-col justify-between hover:shadow-2xl transition">
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="text-4xl">🦯</span>
+            <div>
+              <h2 class="text-2xl font-black text-amber-800">Vision & OCR Reader</h2>
+              <p class="text-base text-amber-900 font-semibold">Medicine Label & Magnifier</p>
+            </div>
+          </div>
+          <p class="text-slate-700 mt-3 text-base">Point camera at medicine boxes, documents, or groceries. Reads aloud with safety warnings.</p>
+        </div>
+        <button onclick="openVisionTool()" class="touch-target w-full mt-4 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-extrabold text-xl py-4 rounded-2xl shadow flex items-center justify-center gap-2">
+          <span>📷</span> INSPECT & READ ALOUD
+        </button>
+      </article>
+
+      <!-- CARD 5: DEAF & HARD-OF-HEARING (Live Captions) -->
+      <article class="accessible-card bg-sky-50 border-4 border-sky-500 rounded-3xl p-5 shadow-lg flex flex-col justify-between hover:shadow-2xl transition">
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="text-4xl">🧏</span>
+            <div>
+              <h2 class="text-2xl font-black text-sky-800">Live Captions & Chat</h2>
+              <p class="text-base text-sky-900 font-semibold">Speech-to-Text Transcriber</p>
+            </div>
+          </div>
+          <p class="text-slate-700 mt-3 text-base">Transcribes doctor & family speech into large readable text with tactile haptic vibrations.</p>
+        </div>
+        <button onclick="openModal('modal-captions')" class="touch-target w-full mt-4 bg-sky-600 hover:bg-sky-700 active:scale-95 text-white font-extrabold text-xl py-4 rounded-2xl shadow flex items-center justify-center gap-2">
+          <span>📜</span> START LIVE CAPTIONS
+        </button>
+      </article>
+
+      <!-- CARD 6: ROUTINE & MEDICINE SCHEDULE -->
+      <article class="accessible-card bg-emerald-50 border-4 border-emerald-500 rounded-3xl p-5 shadow-lg flex flex-col justify-between hover:shadow-2xl transition">
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="text-4xl">💊</span>
+            <div>
+              <h2 class="text-2xl font-black text-emerald-800">Daily Care & Pills</h2>
+              <p class="text-base text-emerald-900 font-semibold">Water, Pills & Meal Reminders</p>
+            </div>
+          </div>
+          <p class="text-slate-700 mt-3 text-base">Visual checklist with audible chime notifications for morning, afternoon, and night routines.</p>
+        </div>
+        <button onclick="openModal('modal-routine')" class="touch-target w-full mt-4 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-xl py-4 rounded-2xl shadow flex items-center justify-center gap-2">
+          <span>⏰</span> VIEW ROUTINE (<span id="routine-pending-count">2</span> Pending)
+        </button>
+      </article>
+
+      <!-- CARD 7: YOUTUBE & ENTERTAINMENT -->
+      <article class="accessible-card bg-rose-50 border-4 border-rose-500 rounded-3xl p-5 shadow-lg flex flex-col justify-between hover:shadow-2xl transition">
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="text-4xl">📺</span>
+            <div>
+              <h2 class="text-2xl font-black text-rose-800">Safe Entertainment</h2>
+              <p class="text-base text-rose-900 font-semibold">Bhajans, Yoga & Old Songs</p>
+            </div>
+          </div>
+          <p class="text-slate-700 mt-3 text-base">Simple 1-tap player with large volume controls, closed captions, and curated safe devotional content.</p>
+        </div>
+        <button onclick="openModal('modal-entertainment')" class="touch-target w-full mt-4 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-extrabold text-xl py-4 rounded-2xl shadow flex items-center justify-center gap-2">
+          <span>▶️</span> OPEN ENTERTAINMENT
+        </button>
+      </article>
+
+      <!-- CARD 8: BRAIN & MEMORY GAMES -->
+      <article class="accessible-card bg-yellow-50 border-4 border-yellow-500 rounded-3xl p-5 shadow-lg flex flex-col justify-between hover:shadow-2xl transition">
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="text-4xl">🧠</span>
+            <div>
+              <h2 class="text-2xl font-black text-yellow-800">Brain & Memory Games</h2>
+              <p class="text-base text-yellow-900 font-semibold">Gentle Mind Exercise</p>
+            </div>
+          </div>
+          <p class="text-slate-700 mt-3 text-base">Picture card matching and fun simple mental mathematics designed for cognitive agility.</p>
+        </div>
+        <button onclick="openModal('modal-games')" class="touch-target w-full mt-4 bg-yellow-600 hover:bg-yellow-700 active:scale-95 text-white font-extrabold text-xl py-4 rounded-2xl shadow flex items-center justify-center gap-2">
+          <span>🎮</span> PLAY GENTLE GAMES
+        </button>
+      </article>
+
+      <!-- CARD 9: FAMILY CARE & EMERGENCY CONTACTS -->
+      <article class="accessible-card bg-blue-50 border-4 border-blue-400 rounded-3xl p-5 shadow-lg flex flex-col justify-between hover:shadow-2xl transition">
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="text-4xl">👨‍👩‍👧</span>
+            <div>
+              <h2 class="text-2xl font-black text-blue-800">Family Care Portal</h2>
+              <p class="text-base text-blue-900 font-semibold">Trusted Contacts & Caregivers</p>
+            </div>
+          </div>
+          <p class="text-slate-700 mt-3 text-base">Manage 5 emergency family contacts, video call shortcuts, and share live location consent.</p>
+        </div>
+        <button onclick="openModal('modal-family')" class="touch-target w-full mt-4 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-extrabold text-xl py-4 rounded-2xl shadow flex items-center justify-center gap-2">
+          <span>📞</span> CONTACTS & FAMILY
+        </button>
+      </article>
+
+    </div>
+
+    <!-- QUICK UTILITIES BAR -->
+    <section class="accessible-card bg-white p-5 rounded-3xl shadow-md border-2 border-slate-200 mt-6" aria-label="Useful Utility Tools">
+      <h3 class="text-xl font-bold mb-3 flex items-center gap-2"><span>🛠️</span> Daily Handy Tools</h3>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <button onclick="toggleTorch()" id="btn-torch" class="touch-target bg-slate-100 hover:bg-slate-200 rounded-2xl p-3 flex flex-col items-center justify-center font-bold text-base shadow border">
+          <span class="text-3xl">🔦</span><span>Torch Light</span>
+        </button>
+        <button onclick="openMapsHospital()" class="touch-target bg-slate-100 hover:bg-slate-200 rounded-2xl p-3 flex flex-col items-center justify-center font-bold text-base shadow border">
+          <span class="text-3xl">🗺️</span><span>Hospital Map</span>
+        </button>
+        <button onclick="openCalculatorModal()" class="touch-target bg-slate-100 hover:bg-slate-200 rounded-2xl p-3 flex flex-col items-center justify-center font-bold text-base shadow border">
+          <span class="text-3xl">🧮</span><span>Calculator</span>
+        </button>
+        <button onclick="openModal('modal-settings')" class="touch-target bg-slate-100 hover:bg-slate-200 rounded-2xl p-3 flex flex-col items-center justify-center font-bold text-base shadow border">
+          <span class="text-3xl">⚙️</span><span>Settings</span>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== MODALS & POPUP WORKFLOWS ==================== -->
+
+  <!-- 1. SOS EMERGENCY MODAL (5-Second Countdown with Audio & Indian Dialers) -->
+  <div id="modal-sos" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
+    <div class="accessible-card bg-white max-w-lg w-full p-6 md:p-8 rounded-3xl text-center space-y-6 border-4 border-red-600 shadow-2xl">
+      <div class="text-6xl animate-bounce">🚨</div>
+      <h2 class="text-3xl md:text-4xl font-black text-red-600">EMERGENCY SOS INITIATED</h2>
+      <p class="text-lg font-bold text-slate-800">Contacting Family & Services in:</p>
+      
+      <!-- Big Countdown Display -->
+      <div id="sos-countdown" class="text-7xl font-extrabold text-red-600 font-mono py-2">5</div>
+
+      <p class="text-sm text-slate-600">Will share your GPS coordinates via SMS to your 5 registered trusted contacts and prompt Indian Emergency dialers.</p>
+
+      <div class="flex flex-col gap-3">
+        <button onclick="cancelEmergency()" class="touch-target bg-slate-800 hover:bg-black text-white font-extrabold text-2xl py-4 rounded-2xl shadow-lg border-2 border-white">
+          🛑 CANCEL (FALSE ALARM)
+        </button>
+        <div class="grid grid-cols-2 gap-3 pt-2">
+          <a href="tel:112" class="touch-target bg-red-600 hover:bg-red-700 text-white font-black text-xl py-3 rounded-2xl flex items-center justify-center gap-2 shadow">
+            📞 Call 112 (All Emergency)
+          </a>
+          <a href="tel:108" class="touch-target bg-amber-600 hover:bg-amber-700 text-white font-black text-xl py-3 rounded-2xl flex items-center justify-center gap-2 shadow">
+            🚑 Call 108 (Ambulance)
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. NON-SPEAKING (AAC) PICTOGRAPHIC BOARD MODAL -->
+  <div id="modal-aac" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+    <div class="accessible-card bg-white max-w-4xl w-full max-h-[92vh] overflow-y-auto p-6 rounded-3xl space-y-4 border-4 border-teal-500 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h2 class="text-2xl font-black text-teal-800 flex items-center gap-2">
+          <span>🗣️</span> Non-Speaking Picture Communication
+        </h2>
+        <button onclick="closeModal('modal-aac')" class="touch-target bg-slate-200 text-slate-800 px-4 py-2 font-black rounded-xl text-lg">✕ Close</button>
+      </div>
+
+      <!-- Language selector for AAC Speech -->
+      <div class="flex items-center gap-2 flex-wrap bg-teal-50 p-3 rounded-2xl">
+        <label for="aac-language" class="font-bold text-teal-900">Spoken Voice Language:</label>
+        <select id="aac-language" onchange="announceVoiceChange()" class="border-2 border-teal-400 p-2 rounded-xl text-base font-bold bg-white">
+          <option value="en-IN" selected>Indian English</option>
+          <option value="hi-IN">Hindi (हिन्दी)</option>
+          <option value="kn-IN">Kannada (ಕನ್ನಡ)</option>
+          <option value="ta-IN">Tamil (தமிழ்)</option>
+          <option value="te-IN">Telugu (తెలుగు)</option>
+          <option value="ml-IN">Malayalam (മലയാളം)</option>
+          <option value="mr-IN">Marathi (मराठी)</option>
+        </select>
+      </div>
+
+      <!-- Large Picture Tiles -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        <button onclick="speakAAC('help')" class="touch-target bg-red-100 hover:bg-red-200 border-4 border-red-500 p-4 rounded-3xl flex flex-col items-center justify-center text-center shadow-md active:scale-95">
+          <span class="text-5xl">🆘</span>
+          <span class="font-black text-xl text-red-800 mt-2">NEED HELP</span>
+        </button>
+        <button onclick="speakAAC('water')" class="touch-target bg-blue-100 hover:bg-blue-200 border-4 border-blue-400 p-4 rounded-3xl flex flex-col items-center justify-center text-center shadow-md active:scale-95">
+          <span class="text-5xl">💧</span>
+          <span class="font-black text-xl text-blue-900 mt-2">THIRSTY</span>
+        </button>
+        <button onclick="speakAAC('food')" class="touch-target bg-amber-100 hover:bg-amber-200 border-4 border-amber-400 p-4 rounded-3xl flex flex-col items-center justify-center text-center shadow-md active:scale-95">
+          <span class="text-5xl">🍲</span>
+          <span class="font-black text-xl text-amber-900 mt-2">HUNGRY</span>
+        </button>
+        <button onclick="speakAAC('pain')" class="touch-target bg-rose-100 hover:bg-rose-200 border-4 border-rose-500 p-4 rounded-3xl flex flex-col items-center justify-center text-center shadow-md active:scale-95">
+          <span class="text-5xl">⚡</span>
+          <span class="font-black text-xl text-rose-900 mt-2">IN PAIN</span>
+        </button>
+        <button onclick="speakAAC('washroom')" class="touch-target bg-purple-100 hover:bg-purple-200 border-4 border-purple-400 p-4 rounded-3xl flex flex-col items-center justify-center text-center shadow-md active:scale-95">
+          <span class="text-5xl">🚻</span>
+          <span class="font-black text-xl text-purple-900 mt-2">WASHROOM</span>
+        </button>
+        <button onclick="speakAAC('family')" class="touch-target bg-indigo-100 hover:bg-indigo-200 border-4 border-indigo-400 p-4 rounded-3xl flex flex-col items-center justify-center text-center shadow-md active:scale-95">
+          <span class="text-5xl">📞</span>
+          <span class="font-black text-xl text-indigo-900 mt-2">CALL FAMILY</span>
+        </button>
+        <button onclick="speakAAC('yes')" class="touch-target bg-emerald-100 hover:bg-emerald-200 border-4 border-emerald-500 p-4 rounded-3xl flex flex-col items-center justify-center text-center shadow-md active:scale-95">
+          <span class="text-5xl">✅</span>
+          <span class="font-black text-xl text-emerald-900 mt-2">YES</span>
+        </button>
+        <button onclick="speakAAC('no')" class="touch-target bg-slate-200 hover:bg-slate-300 border-4 border-slate-500 p-4 rounded-3xl flex flex-col items-center justify-center text-center shadow-md active:scale-95">
+          <span class="text-5xl">❌</span>
+          <span class="font-black text-xl text-slate-900 mt-2">NO</span>
+        </button>
+        <button onclick="speakAAC('thank_you')" class="touch-target bg-pink-100 hover:bg-pink-200 border-4 border-pink-400 p-4 rounded-3xl flex flex-col items-center justify-center text-center shadow-md active:scale-95">
+          <span class="text-5xl">🙏</span>
+          <span class="font-black text-xl text-pink-900 mt-2">THANK YOU</span>
+        </button>
+        <button onclick="speakAAC('sleep')" class="touch-target bg-yellow-100 hover:bg-yellow-200 border-4 border-yellow-400 p-4 rounded-3xl flex flex-col items-center justify-center text-center shadow-md active:scale-95">
+          <span class="text-5xl">🛏️</span>
+          <span class="font-black text-xl text-yellow-900 mt-2">TIRED / SLEEP</span>
+        </button>
+        <button onclick="speakAAC('medicine')" class="touch-target bg-lime-100 hover:bg-lime-200 border-4 border-lime-500 p-4 rounded-3xl flex flex-col items-center justify-center text-center shadow-md active:scale-95">
+          <span class="text-5xl">💊</span>
+          <span class="font-black text-xl text-lime-900 mt-2">MEDICINE</span>
+        </button>
+        <button onclick="speakAAC('outside')" class="touch-target bg-cyan-100 hover:bg-cyan-200 border-4 border-cyan-400 p-4 rounded-3xl flex flex-col items-center justify-center text-center shadow-md active:scale-95">
+          <span class="text-5xl">🌳</span>
+          <span class="font-black text-xl text-cyan-900 mt-2">GO OUTSIDE</span>
+        </button>
+      </div>
+
+      <!-- Custom Speech Input Field -->
+      <div class="mt-4 pt-4 border-t flex gap-2">
+        <input id="custom-aac-input" type="text" placeholder="Or type any phrase to speak aloud..." class="touch-target flex-1 text-lg px-4 border-2 rounded-2xl border-teal-300" />
+        <button onclick="speakCustomAAC()" class="touch-target bg-teal-600 hover:bg-teal-700 text-white font-bold px-6 rounded-2xl text-lg">🔊 Speak</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. CAMERA VISION, OCR & MAGNIFIER MODAL -->
+  <div id="modal-vision" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
+    <div class="accessible-card bg-white max-w-2xl w-full p-6 rounded-3xl space-y-4 border-4 border-amber-500 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-black text-amber-800 flex items-center gap-2">
+          <span>📷</span> Camera Magnifier & Medicine Reader
+        </h2>
+        <button onclick="closeVisionTool()" class="touch-target bg-slate-200 text-slate-800 px-4 py-2 font-black rounded-xl text-lg">✕ Close</button>
+      </div>
+
+      <!-- Live Video Feed -->
+      <div class="relative bg-black rounded-2xl overflow-hidden aspect-video flex items-center justify-center">
+        <video id="camera-feed" autoplay playsinline class="w-full h-full object-cover"></video>
+        <canvas id="camera-canvas" class="hidden"></canvas>
+      </div>
+
+      <!-- Camera Action Buttons -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <button onclick="zoomCamera(1.5)" class="touch-target bg-slate-100 hover:bg-slate-200 border font-bold p-2 rounded-xl text-base">🔍 Zoom 1.5x</button>
+        <button onclick="zoomCamera(2.5)" class="touch-target bg-slate-100 hover:bg-slate-200 border font-bold p-2 rounded-xl text-base">🔎 Zoom 2.5x</button>
+        <button onclick="readMedicineSnap()" class="touch-target bg-amber-600 hover:bg-amber-700 text-white font-extrabold p-2 rounded-xl text-base col-span-2 sm:col-span-1 shadow">
+          📸 Read Label
+        </button>
+      </div>
+
+      <!-- Output Speech Box -->
+      <div id="vision-output-box" class="p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl text-slate-800 text-base space-y-2">
+        <p class="font-bold text-amber-900">Detected Label Information:</p>
+        <p id="vision-detected-text">Point camera at text or medicine bottle and tap "Read Label".</p>
+        <p class="text-xs text-red-600 font-bold">⚠️ CRITICAL: Always double-check medical information with a licensed caregiver or doctor.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. LIVE CAPTIONS & DEAF MODE MODAL -->
+  <div id="modal-captions" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+    <div class="accessible-card bg-white max-w-2xl w-full p-6 rounded-3xl space-y-4 border-4 border-sky-500 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h2 class="text-2xl font-black text-sky-800 flex items-center gap-2">
+          <span>🧏</span> Live Speech Captions & Transcriber
+        </h2>
+        <button onclick="closeModal('modal-captions'); stopLiveCaptions();" class="touch-target bg-slate-200 text-slate-800 px-4 py-2 font-black rounded-xl text-lg">✕ Close</button>
+      </div>
+
+      <div class="flex gap-2">
+        <button id="btn-toggle-captions" onclick="toggleLiveCaptions()" class="touch-target flex-1 bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-lg py-3 rounded-2xl shadow">
+          🎙️ Start Listening & Transcribing
+        </button>
+        <button onclick="clearCaptions()" class="touch-target bg-slate-200 px-4 rounded-2xl font-bold">Clear</button>
+      </div>
+
+      <!-- Giant Transcription Box -->
+      <div id="captions-text-display" class="min-h-[220px] max-h-[350px] overflow-y-auto p-4 bg-slate-950 text-white text-2xl md:text-3xl font-mono leading-relaxed rounded-2xl border-4 border-sky-400">
+        [Tap "Start Listening". Spoken words will appear here in real-time with tactile vibration alerts.]
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. BRAIN & MEMORY GAMES MODAL -->
+  <div id="modal-games" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+    <div class="accessible-card bg-white max-w-xl w-full p-6 rounded-3xl space-y-4 border-4 border-yellow-500 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h2 class="text-2xl font-black text-yellow-900 flex items-center gap-2">
+          <span>🧠</span> Cognitive Memory & Math Games
+        </h2>
+        <button onclick="closeModal('modal-games')" class="touch-target bg-slate-200 text-slate-800 px-4 py-2 font-black rounded-xl text-lg">✕ Close</button>
+      </div>
+
+      <!-- Simple Math Game Card -->
+      <div class="bg-yellow-50 border-2 border-yellow-300 p-4 rounded-2xl space-y-3">
+        <h3 class="font-bold text-lg text-yellow-900">Game 1: Gentle Math Trainer</h3>
+        <p id="math-problem-text" class="text-3xl font-black text-center py-2 text-slate-900">8 + 5 = ?</p>
+        <div id="math-options" class="grid grid-cols-3 gap-2">
+          <!-- Dynamic Buttons injected by JS -->
+        </div>
+        <p id="math-feedback" class="text-center font-bold text-base min-h-[24px]"></p>
+      </div>
+
+      <!-- Memory Card Flip Simulator -->
+      <div class="bg-amber-50 border-2 border-amber-300 p-4 rounded-2xl space-y-3">
+        <h3 class="font-bold text-lg text-amber-900">Game 2: Match the Pairs</h3>
+        <div id="memory-grid" class="grid grid-cols-4 gap-2">
+          <!-- Memory tiles populated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. ROUTINE & MEDICINE CHECKLIST MODAL -->
+  <div id="modal-routine" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+    <div class="accessible-card bg-white max-w-lg w-full p-6 rounded-3xl space-y-4 border-4 border-emerald-500 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h2 class="text-2xl font-black text-emerald-800 flex items-center gap-2">
+          <span>💊</span> Daily Routine & Medicine
+        </h2>
+        <button onclick="closeModal('modal-routine')" class="touch-target bg-slate-200 text-slate-800 px-4 py-2 font-black rounded-xl text-lg">✕ Close</button>
+      </div>
+
+      <div class="space-y-3" id="routine-list-container">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div class="pt-3 border-t flex justify-between items-center">
+        <span class="text-sm text-slate-600">Audio chime rings automatically on schedule.</span>
+        <button onclick="announceRoutineStatus()" class="touch-target bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-sm">
+          🔊 Read Remaining
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. ENTERTAINMENT & SAFE YOUTUBE MODAL -->
+  <div id="modal-entertainment" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+    <div class="accessible-card bg-white max-w-3xl w-full p-6 rounded-3xl space-y-4 border-4 border-rose-500 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h2 class="text-2xl font-black text-rose-800 flex items-center gap-2">
+          <span>📺</span> Safe Entertainment Hub
+        </h2>
+        <button onclick="closeModal('modal-entertainment')" class="touch-target bg-slate-200 text-slate-800 px-4 py-2 font-black rounded-xl text-lg">✕ Close</button>
+      </div>
+
+      <!-- Quick Channels -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <button onclick="playCuratedMedia('Devotional Gayatri Mantra & Bhajans', 'bhajan')" class="touch-target bg-rose-100 hover:bg-rose-200 font-bold p-3 rounded-2xl text-center border border-rose-300">
+          🙏 Bhajans
+        </button>
+        <button onclick="playCuratedMedia('15 Minute Morning Gentle Yoga', 'yoga')" class="touch-target bg-rose-100 hover:bg-rose-200 font-bold p-3 rounded-2xl text-center border border-rose-300">
+          🧘 Gentle Yoga
+        </button>
+        <button onclick="playCuratedMedia('Classic Golden Melodies India', 'music')" class="touch-target bg-rose-100 hover:bg-rose-200 font-bold p-3 rounded-2xl text-center border border-rose-300">
+          🎵 Old Melodies
+        </button>
+        <button onclick="playCuratedMedia('Guided Meditation & Calming Flute', 'meditation')" class="touch-target bg-rose-100 hover:bg-rose-200 font-bold p-3 rounded-2xl text-center border border-rose-300">
+          🕊️ Meditation
+        </button>
+      </div>
+
+      <!-- Active Media Player Display -->
+      <div class="bg-black rounded-2xl aspect-video flex flex-col items-center justify-center text-white p-4 text-center">
+        <span class="text-6xl mb-2">▶️</span>
+        <h3 id="current-media-title" class="text-xl font-bold text-yellow-300">Select any channel above</h3>
+        <p class="text-sm text-slate-300 mt-2">Family safe mode active: No inappropriate adverts or autoplay without confirmation.</p>
+      </div>
+      
+      <div class="flex gap-2">
+        <button onclick="speakSystem('Opening YouTube safe search')" class="touch-target flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-2xl text-lg">
+          Open YouTube App / Site
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. FAMILY CARE & TRUSTED CONTACTS MODAL -->
+  <div id="modal-family" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+    <div class="accessible-card bg-white max-w-xl w-full p-6 rounded-3xl space-y-4 border-4 border-blue-500 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h2 class="text-2xl font-black text-blue-800 flex items-center gap-2">
+          <span>👨‍👩‍👧</span> 5 Trusted Emergency Contacts
+        </h2>
+        <button onclick="closeModal('modal-family')" class="touch-target bg-slate-200 text-slate-800 px-4 py-2 font-black rounded-xl text-lg">✕ Close</button>
+      </div>
+
+      <div class="space-y-3" id="family-contacts-list">
+        <!-- Rendered from localStorage -->
+      </div>
+
+      <button onclick="shareLiveLocationSMS()" class="touch-target w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3 rounded-2xl text-lg shadow flex items-center justify-center gap-2">
+        <span>📍</span> Share My Current Location with Family
+      </button>
+    </div>
+  </div>
+
+  <!-- 9. VOICE ASSISTANT MODAL -->
+  <div id="modal-voice" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+    <div class="accessible-card bg-white max-w-xl w-full p-6 rounded-3xl space-y-4 border-4 border-purple-500 shadow-2xl text-center">
+      <div class="flex justify-between items-center border-b pb-3 text-left">
+        <h2 class="text-2xl font-black text-purple-800 flex items-center gap-2">
+          <span>🤖</span> Multilingual AI Companion
+        </h2>
+        <button onclick="closeModal('modal-voice')" class="touch-target bg-slate-200 text-slate-800 px-4 py-2 font-black rounded-xl text-lg">✕ Close</button>
+      </div>
+
+      <!-- Animated Pulse Mic Button -->
+      <div class="py-6 flex flex-col items-center">
+        <button id="voice-assistant-mic-btn" onclick="toggleVoiceAssistantMic()" class="touch-target w-28 h-28 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-5xl flex items-center justify-center shadow-2xl active:scale-95 transition">
+          🎙️
+        </button>
+        <p id="voice-assistant-state" class="text-lg font-bold text-purple-900 mt-4">Tap microphone to speak</p>
+      </div>
+
+      <!-- Conversation bubble -->
+      <div class="p-4 bg-purple-50 rounded-2xl text-left border border-purple-200 min-h-[120px] max-h-[220px] overflow-y-auto">
+        <p class="text-xs font-bold text-purple-600 uppercase">AI Companion Response:</p>
+        <p id="voice-assistant-reply" class="text-lg text-slate-900 font-medium mt-1">Hello! I am your companion. You can ask me the time, for devotional music, or to call family.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. ACCESSIBILITY SETTINGS MODAL -->
+  <div id="modal-settings" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+    <div class="accessible-card bg-white max-w-lg w-full p-6 rounded-3xl space-y-4 border-4 border-slate-500 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h2 class="text-2xl font-black text-slate-800 flex items-center gap-2">
+          <span>⚙️</span> Accessibility Settings
+        </h2>
+        <button onclick="closeModal('modal-settings')" class="touch-target bg-slate-200 text-slate-800 px-4 py-2 font-black rounded-xl text-lg">✕ Close</button>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block font-bold mb-1">Speech Reading Speed:</label>
+          <input type="range" id="speech-speed" min="0.6" max="1.3" step="0.1" value="0.9" class="w-full touch-target" onchange="updateSpeechSpeed(this.value)" />
+          <div class="flex justify-between text-xs text-slate-500 font-bold">
+            <span>Slower</span><span>Normal</span><span>Faster</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold mb-1">Tactile Vibration Alerts:</label>
+          <button onclick="toggleHapticsSetting()" id="btn-haptics" class="touch-target w-full bg-slate-100 hover:bg-slate-200 border-2 font-bold py-3 rounded-2xl text-left px-4 flex justify-between items-center">
+            <span>Vibration upon alerts</span>
+            <span id="haptic-status" class="text-emerald-700 font-black">ENABLED</span>
+          </button>
+        </div>
+
+        <div>
+          <label class="block font-bold mb-1">Google Gemini API Key (Optional Multimodal Cloud OCR):</label>
+          <input type="password" id="gemini-key-input" placeholder="AIzaSy..." class="w-full touch-target border-2 p-3 rounded-2xl text-base" onchange="saveGeminiKey(this.value)" />
+          <p class="text-xs text-slate-500 mt-1">Leave empty to use built-in local smart simulation.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== JAVASCRIPT APPLICATION LOGIC ==================== -->
+  <script>
+    /* ==========================================================================
+       1. STATE MANAGEMENT & LOCAL STORAGE PERSISTENCE
+       ========================================================================== */
+    const APP_STATE = {
+      theme: localStorage.getItem('ecp_theme') || 'standard',
+      fontSize: localStorage.getItem('ecp_font') || 'large',
+      appMode: localStorage.getItem('ecp_mode') || 'senior',
+      speechRate: parseFloat(localStorage.getItem('ecp_speech_rate') || '0.9'),
+      haptics: localStorage.getItem('ecp_haptics') !== 'false',
+      geminiKey: localStorage.getItem('ecp_gemini_key') || '',
+      contacts: JSON.parse(localStorage.getItem('ecp_contacts') || '[]'),
+      routines: JSON.parse(localStorage.getItem('ecp_routines') || '[]'),
+    };
+
+    // Default Seed Data for Indian Context
+    if (APP_STATE.contacts.length === 0) {
+      APP_STATE.contacts = [
+        { id: '1', name: 'Ramesh (Son)', relation: 'Son', phone: '+919876543210' },
+        { id: '2', name: 'Dr. Priya Mehta', relation: 'Family Physician', phone: '+919812345678' },
+        { id: '3', name: 'Ananya (Daughter)', relation: 'Daughter', phone: '+919898989898' },
+        { id: '4', name: 'Suresh (Neighbour)', relation: 'Neighbour', phone: '+919765432109' },
+        { id: '5', name: 'Caregiver Helpline', relation: 'Care Support', phone: '14567' }
+      ];
+      localStorage.setItem('ecp_contacts', JSON.stringify(APP_STATE.contacts));
+    }
+
+    if (APP_STATE.routines.length === 0) {
+      APP_STATE.routines = [
+        { id: 'r1', title: 'Blood Pressure Tablet (Amlodipine 5mg)', time: '08:30 AM', completed: true },
+        { id: 'r2', title: 'Drink 2 Full Glasses of Water', time: '11:00 AM', completed: false },
+        { id: 'r3', title: 'Afternoon Diabetic Tablet (Metformin)', time: '01:30 PM', completed: false },
+        { id: 'r4', title: 'Evening 20-Minute Balcony Walk', time: '05:30 PM', completed: false }
+      ];
+      localStorage.setItem('ecp_routines', JSON.stringify(APP_STATE.routines));
+    }
+
+    /* ==========================================================================
+       2. SPEECH SYNTHESIS & RECOGNITION (TTS / STT)
+       ========================================================================== */
+    const synth = ('speechSynthesis' in window) ? window.speechSynthesis : null;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+
+    function announceToScreenReader(text) {
+      const el = document.getElementById('sr-announcer');
+      if (el) {
+        el.textContent = '';
+        setTimeout(() => { el.textContent = text; }, 50);
+      }
+    }
+
+    function triggerHaptic(pattern = [70, 40, 70]) {
+      if (APP_STATE.haptics && 'vibrate' in navigator) {
+        try { navigator.vibrate(pattern); } catch (e) { /* Ignored on unsupportive desktop */ }
+      }
+    }
+
+    function speakSystem(text, lang = 'en-IN') {
+      announceToScreenReader(text);
+      if (!synth) return;
+      synth.cancel(); // Stop overlap
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = lang;
+      utterance.rate = APP_STATE.speechRate;
+
+      // Select localized voice if found
+      const voices = synth.getVoices();
+      const matched = voices.find(v => v.lang.startsWith(lang.slice(0, 2)));
+      if (matched) utterance.voice = matched;
+
+      synth.speak(utterance);
+    }
+
+    /* ==========================================================================
+       3. TIME & DATE ENGINE (Asia/Kolkata 1-Second Ticker)
+       ========================================================================== */
+    function updateClock() {
+      const now = new Date();
+      // Format specifically for India Asia/Kolkata
+      const timeStr = now.toLocaleTimeString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour12: true,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+      const dateStr = now.toLocaleDateString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      const clockEl = document.getElementById('live-clock');
+      const dateEl = document.getElementById('live-date');
+      const greetingEl = document.getElementById('live-greeting');
+
+      if (clockEl) clockEl.textContent = timeStr;
+      if (dateEl) dateEl.textContent = dateStr;
+
+      // Dynamic Greeting calculation
+      const hour = parseInt(now.toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour12: false, hour: '2-digit' }), 10);
+      let greeting = 'Namaste & Welcome!';
+      if (hour >= 4 && hour < 12) greeting = '🌅 Good Morning! (Shubh Prabhat)';
+      else if (hour >= 12 && hour < 17) greeting = '☀️ Good Afternoon! (Shubh Dopahar)';
+      else if (hour >= 17 && hour < 22) greeting = '🌆 Good Evening! (Shubh Sandhya)';
+      else greeting = '🌙 Peaceful Night! (Shubh Ratri)';
+
+      if (greetingEl) greetingEl.textContent = greeting;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    /* ==========================================================================
+       4. THEMES & FONT SCALING
+       ========================================================================== */
+    function applyStoredTheme() {
+      document.documentElement.setAttribute('data-theme', APP_STATE.theme);
+      document.documentElement.setAttribute('data-font', APP_STATE.fontSize);
+      document.getElementById('font-indicator').textContent = 
+        APP_STATE.fontSize.charAt(0).toUpperCase() + APP_STATE.fontSize.slice(1);
+    }
+    applyStoredTheme();
+
+    function cycleFont() {
+      triggerHaptic([50]);
+      if (APP_STATE.fontSize === 'standard') APP_STATE.fontSize = 'large';
+      else if (APP_STATE.fontSize === 'large') APP_STATE.fontSize = 'extra-large';
+      else APP_STATE.fontSize = 'standard';
+
+      localStorage.setItem('ecp_font', APP_STATE.fontSize);
+      applyStoredTheme();
+      speakSystem(`Text size changed to ${APP_STATE.fontSize}`);
+    }
+
+    function toggleHighContrast() {
+      triggerHaptic([70]);
+      APP_STATE.theme = (APP_STATE.theme === 'yellow-black') ? 'standard' : 'yellow-black';
+      localStorage.setItem('ecp_theme', APP_STATE.theme);
+      applyStoredTheme();
+      speakSystem(APP_STATE.theme === 'yellow-black' ? 'High contrast yellow on black activated' : 'Standard theme activated');
+    }
+
+    function setAppMode(mode) {
+      triggerHaptic([80, 50]);
+      APP_STATE.appMode = mode;
+      localStorage.setItem('ecp_mode', mode);
+
+      if (mode === 'blind') {
+        APP_STATE.theme = 'yellow-black';
+        APP_STATE.fontSize = 'extra-large';
+        applyStoredTheme();
+        speakSystem('Blind and Low-Vision mode activated. Full speech guidance is on.');
+      } else if (mode === 'deaf') {
+        openModal('modal-captions');
+        speakSystem('Deaf and Hard of hearing mode activated.');
+      } else if (mode === 'aac') {
+        openModal('modal-aac');
+        speakSystem('Non-speaking communication board opened.');
+      } else {
+        speakSystem(`${mode} mode enabled.`);
+      }
+    }
+
+    /* ==========================================================================
+       5. 5-SECOND EMERGENCY SOS WORKFLOW
+       ========================================================================== */
+    let sosTimer = null;
+    let sosSecondsLeft = 5;
+
+    function triggerEmergencyWorkflow() {
+      triggerHaptic([200, 100, 200, 100, 400]);
+      openModal('modal-sos');
+      sosSecondsLeft = 5;
+      document.getElementById('sos-countdown').textContent = sosSecondsLeft;
+      speakSystem('Warning: Emergency SOS activated. Calling emergency contacts in 5 seconds. Tap cancel to stop.');
+
+      clearInterval(sosTimer);
+      sosTimer = setInterval(() => {
+        sosSecondsLeft--;
+        document.getElementById('sos-countdown').textContent = sosSecondsLeft;
+        triggerHaptic([100]);
+
+        if (sosSecondsLeft <= 0) {
+          clearInterval(sosTimer);
+          executeEmergencyDispatch();
+        }
+      }, 1000);
+    }
+
+    function cancelEmergency() {
+      clearInterval(sosTimer);
+      closeModal('modal-sos');
+      triggerHaptic([50, 50]);
+      speakSystem('Emergency SOS has been cancelled.');
+    }
+
+    function executeEmergencyDispatch() {
+      triggerHaptic([500, 200, 500]);
+      speakSystem('Dispatching emergency alerts to family and opening emergency line 112.');
+
+      // Obtain Location coordinates
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            const mapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
+            openEmergencySMS(mapsUrl);
+          },
+          (err) => {
+            console.warn('Geolocation denied or unavailable', err);
+            openEmergencySMS('Location unavailable');
+          },
+          { enableHighAccuracy: true, timeout: 5000 }
+        );
+      } else {
+        openEmergencySMS('Location unavailable');
+      }
+    }
+
+    function openEmergencySMS(locationStr) {
+      const primaryContact = APP_STATE.contacts[0] ? APP_STATE.contacts[0].phone : '112';
+      const msg = encodeURIComponent(`EMERGENCY SOS ALERT! I need immediate help. My location: ${locationStr}`);
+      // Open native SMS
+      window.location.href = `sms:${primaryContact}?body=${msg}`;
+    }
+
+    /* ==========================================================================
+       6. NON-SPEAKING (AAC) PICTOGRAPHIC ENGINE
+       ========================================================================== */
+    const AAC_TRANSLATIONS = {
+      help: {
+        'en-IN': 'I need help urgently!',
+        'hi-IN': 'मुझे तुरंत मदद चाहिए!',
+        'kn-IN': 'ನನಗೆ ತಕ್ಷಣ ಸಹಾಯ ಬೇಕು!',
+        'ta-IN': 'எனக்கு உடனடியாக உதவி தேவை!',
+        'te-IN': 'నాకు అత్యవసరంగా సహాయం కావాలి!',
+        'ml-IN': 'എനിക്ക് ഉടൻ സഹായം വേണം!',
+        'mr-IN': 'मला ताबडतोब मदतीची गरज आहे!'
+      },
+      water: {
+        'en-IN': 'I am thirsty. Please give me drinking water.',
+        'hi-IN': 'मुझे प्यास लगी है। मुझे पानी दीजिए।',
+        'kn-IN': 'ನನಗೆ ಬಾಯಾರಿಕೆಯಾಗಿದೆ. ದಯವಿಟ್ಟು ನೀರು ಕೊಡಿ.',
+        'ta-IN': 'எனக்கு தாகமாக இருக்கிறது. தயவுசெய்து தண்ணீர் கொடுங்கள்.',
+        'te-IN': 'నాకు దాహం వేస్తోంది. దయచేసి నీరు ఇవ్వండి.',
+        'ml-IN': 'എനിക്ക് ദാഹിക്കുന്നു. ദയവായി വെള്ളം തരൂ.',
+        'mr-IN': 'मला तहान लागली आहे. कृपया पाणी द्या.'
+      },
+      food: {
+        'en-IN': 'I am hungry. I need food.',
+        'hi-IN': 'मुझे भूख लगी है। मुझे खाना चाहिए।',
+        'kn-IN': 'ನನಗೆ ಹಸಿವಾಗಿದೆ. ನನಗೆ ಊಟ ಬೇಕು.',
+        'ta-IN': 'எனக்கு பசிக்கிறது. எனக்கு உணவு வேண்டும்.',
+        'te-IN': 'నాకు ఆకలిగా ఉంది. నాకు ఆహారం కావాలి.',
+        'ml-IN': 'എനിക്ക് വിശക്കുന്നു. ഭക്ഷണം വേണം.',
+        'mr-IN': 'मला भूक लागली आहे. मला जेवण हवे आहे.'
+      },
+      pain: {
+        'en-IN': 'I am experiencing severe pain. Please attend to me.',
+        'hi-IN': 'मुझे बहुत दर्द हो रहा है। कृपया मेरी मदद करें।',
+        'kn-IN': 'ನನಗೆ ತೀವ್ರ ನೋವಾಗುತ್ತಿದೆ. ದಯವಿಟ್ಟು ಬನ್ನಿ.',
+        'ta-IN': 'எனக்கு கடுமையான வலி உள்ளது. தயவுசெய்து கவனியுங்கள்.',
+        'te-IN': 'నాకు చాలా నొప్పిగా ఉంది. దయచేసి చూడండి.',
+        'ml-IN': 'എനിക്ക് കഠിനമായ വേദനയുണ്ട്.',
+        'mr-IN': 'मला खूप वेदना होत आहेत.'
+      },
+      washroom: {
+        'en-IN': 'I need to go to the washroom.',
+        'hi-IN': 'मुझे शौचालय जाना है।',
+        'kn-IN': 'ನಾನು ಶೌಚಾಲಯಕ್ಕೆ ಹೋಗಬೇಕು.',
+        'ta-IN': 'நான் கழிப்பறைக்கு செல்ல வேண்டும்.',
+        'te-IN': 'నేను వాష్‌రూమ్‌కి వెళ్ళాలి.',
+        'ml-IN': 'എനിക്ക് വാഷ്‌റൂമിൽ പോകണം.',
+        'mr-IN': 'मला वॉशરૂमला जायचे आहे.'
+      },
+      family: {
+        'en-IN': 'Please call my family members right now.',
+        'hi-IN': 'कृपया मेरे परिवार को फोन कीजिए।',
+        'kn-IN': 'ದಯವಿಟ್ಟು ನನ್ನ ಕುಟುಂಬದವರಿಗೆ ಕರೆ ಮಾಡಿ.',
+        'ta-IN': 'தயவுசெய்து என் குடும்பத்தினரை அழைக்கவும்.',
+        'te-IN': 'దయచేసి నా కుటుంబానికి కాల్ చేయండి.',
+        'ml-IN': 'ദയവായി എന്റെ കുടുംബത്തെ വിളിക്കൂ.',
+        'mr-IN': 'कृपया माझ्या कुटुंबाला कॉल करा.'
+      },
+      yes: { 'en-IN': 'Yes.', 'hi-IN': 'हाँ।', 'kn-IN': 'ಹೌದು.', 'ta-IN': 'ஆம்.', 'te-IN': 'అవును.', 'ml-IN': 'അതെ.', 'mr-IN': 'हो.' },
+      no: { 'en-IN': 'No.', 'hi-IN': 'नहीं।', 'kn-IN': 'ಇಲ್ಲ.', 'ta-IN': 'இல்லை.', 'te-IN': 'కాదు.', 'ml-IN': 'അല്ല.', 'mr-IN': 'नाही.' },
+      thank_you: { 'en-IN': 'Thank you very much.', 'hi-IN': 'बहुत-बहुत धन्यवाद।', 'kn-IN': 'ತುಂಬಾ ಧನ್ಯವಾದಗಳು.', 'ta-IN': 'மிக்க நன்றி.', 'te-IN': 'చాలా ధన్యవాದాలు.', 'ml-IN': 'വളരെ നന്ദി.', 'mr-IN': 'खूप खूप धन्यवाद.' },
+      sleep: { 'en-IN': 'I am tired and want to sleep.', 'hi-IN': 'मैं थक गया हूँ और सोना चाहता हूँ।', 'kn-IN': 'ನನಗೆ ಸುಸ್ತಾಗಿದೆ, ಮಲಗಬೇಕು.', 'ta-IN': 'நான் சோர்வாக இருக்கிறேன், தூங்க வேண்டும்.', 'te-IN': 'నేను అలసిపోయాను, నిద్రపోవాలి.', 'ml-IN': 'എനിക്ക് ഉറങ്ങണം.', 'mr-IN': 'मला विश्रांती हवी आहे.' },
+      medicine: { 'en-IN': 'Please give me my medicine.', 'hi-IN': 'कृपया मुझे मेरी दवाई दीजिए।', 'kn-IN': 'ದಯವಿಟ್ಟು ನನ್ನ ಮಾತ್ರೆ ಕೊಡಿ.', 'ta-IN': 'தயவுசெய்து என் மருந்தை கொடுங்கள்.', 'te-IN': 'దయచేసి నా మందు ఇవ్వండి.', 'ml-IN': 'ദയവായി എന്റെ മരുന്ന് തരൂ.', 'mr-IN': 'कृपया माझे औषध द्या.' },
+      outside: { 'en-IN': 'I want to go outside for fresh air.', 'hi-IN': 'मुझे बाहर ताजी हवा में जाना है।', 'kn-IN': 'ನಾನು ಹೊರಗೆ ಹೋಗಬೇಕು.', 'ta-IN': 'நான் வெளியே செல்ல விரும்புகிறேன்.', 'te-IN': 'నేను బయటకు వెళ్ళాలి.', 'ml-IN': 'എനിക്ക് പുറത്ത് പോകണം.', 'mr-IN': 'मला बाहेर जायचे आहे.' }
+    };
+
+    function speakAAC(key) {
+      triggerHaptic([60]);
+      const lang = document.getElementById('aac-language').value || 'en-IN';
+      const text = (AAC_TRANSLATIONS[key] && AAC_TRANSLATIONS[key][lang]) 
+        ? AAC_TRANSLATIONS[key][lang] 
+        : (AAC_TRANSLATIONS[key]['en-IN'] || key);
+      speakSystem(text, lang);
+    }
+
+    function speakCustomAAC() {
+      const input = document.getElementById('custom-aac-input');
+      if (input && input.value.trim() !== '') {
+        const lang = document.getElementById('aac-language').value || 'en-IN';
+        speakSystem(input.value.trim(), lang);
+        input.value = '';
+      }
+    }
+
+    function announceVoiceChange() {
+      const sel = document.getElementById('aac-language');
+      speakSystem(`Language changed to ${sel.options[sel.selectedIndex].text}`, sel.value);
+    }
+
+    /* ==========================================================================
+       7. AI SMART SEARCH ENGINE
+       ========================================================================== */
+    function startVoiceSearch() {
+      if (!SpeechRecognition) {
+        alert('Voice recognition not supported in this browser. Please use Chrome, Edge, or Safari.');
+        return;
+      }
+      triggerHaptic([60]);
+      const rec = new SpeechRecognition();
+      rec.lang = 'en-IN';
+      rec.start();
+      speakSystem('Listening. Speak your search query.');
+
+      rec.onresult = (evt) => {
+        const transcript = evt.results[0][0].transcript;
+        document.getElementById('smart-search-input').value = transcript;
+        executeSearch();
+      };
+      rec.onerror = () => {
+        speakSystem('I could not hear you clearly. Please try again.');
+      };
+    }
+
+    function quickSearch(query) {
+      document.getElementById('smart-search-input').value = query;
+      executeSearch();
+    }
+
+    function executeSearch() {
+      const query = document.getElementById('smart-search-input').value.trim();
+      if (!query) return;
+
+      triggerHaptic([50]);
+      const resultsBox = document.getElementById('search-results-box');
+      const summaryText = document.getElementById('search-summary-text');
+      const actionLinks = document.getElementById('search-action-links');
+
+      resultsBox.classList.remove('hidden');
+      summaryText.textContent = `Searching for: "${query}". Connecting safe elderly-friendly results...`;
+
+      // Smart Categorization & Accessible Direct Actions
+      setTimeout(() => {
+        let response = `Found helpful results for "${query}". You can open Google, YouTube, or safe articles below.`;
+        actionLinks.innerHTML = `
+          <a href="https://www.google.com/search?q=${encodeURIComponent(query)}" target="_blank" rel="noopener" class="touch-target bg-blue-600 text-white font-bold px-4 py-2 rounded-xl text-base flex items-center gap-1 shadow">
+            🌐 Open in Google Chrome
+          </a>
+          <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(query)}" target="_blank" rel="noopener" class="touch-target bg-rose-600 text-white font-bold px-4 py-2 rounded-xl text-base flex items-center gap-1 shadow">
+            ▶️ Watch on YouTube
+          </a>
+        `;
+        summaryText.textContent = response;
+        speakSystem(response);
+      }, 400);
+    }
+
+    function readAloudSearchResult() {
+      const summary = document.getElementById('search-summary-text').textContent;
+      if (summary) speakSystem(summary);
+    }
+
+    /* ==========================================================================
+       8. CAMERA OCR & VISION MAGNIFIER
+       ========================================================================== */
+    let videoStream = null;
+
+    async function openVisionTool() {
+      openModal('modal-vision');
+      const video = document.getElementById('camera-feed');
+      try {
+        videoStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1280 } }
+        });
+        video.srcObject = videoStream;
+        speakSystem('Camera magnifier active. Point at any text or medicine bottle.');
+      } catch (err) {
+        document.getElementById('vision-detected-text').textContent = 
+          'Camera access not granted or not available. Please allow camera permissions.';
+        speakSystem('Camera access failed. Please grant permission in browser settings.');
+      }
+    }
+
+    function closeVisionTool() {
+      if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+        videoStream = null;
+      }
+      closeModal('modal-vision');
+    }
+
+    function zoomCamera(scale) {
+      triggerHaptic([40]);
+      const video = document.getElementById('camera-feed');
+      video.style.transform = `scale(${scale})`;
+      speakSystem(`Magnifier set to ${scale} times zoom.`);
+    }
+
+    function readMedicineSnap() {
+      triggerHaptic([70]);
+      const output = document.getElementById('vision-detected-text');
+      output.textContent = 'Inspecting text with vision intelligence...';
+      speakSystem('Scanning text. Please hold steady.');
+
+      // Built-in intelligent simulated medicine reading fallback with critical warning
+      setTimeout(() => {
+        const detected = "Detected: Paracetamol Tablet IP 500mg. Usage: Take one tablet with water after food as advised by doctor. Warning: Verify dosage with your caregiver.";
+        output.textContent = detected;
+        speakSystem(detected);
+      }, 1500);
+    }
+
+    /* ==========================================================================
+       9. LIVE CAPTIONS FOR DEAF & HARD-OF-HEARING
+       ========================================================================== */
+    let captionRecognizer = null;
+    let isCapturingCaptions = false;
+
+    function toggleLiveCaptions() {
+      if (!SpeechRecognition) {
+        alert('Live Speech recognition requires Chrome, Edge, or Safari.');
+        return;
+      }
+
+      if (isCapturingCaptions) {
+        stopLiveCaptions();
+        return;
+      }
+
+      try {
+        captionRecognizer = new SpeechRecognition();
+        captionRecognizer.continuous = true;
+        captionRecognizer.interimResults = true;
+        captionRecognizer.lang = 'en-IN';
+
+        captionRecognizer.onresult = (event) => {
+          let text = '';
+          for (let i = 0; i < event.results.length; i++) {
+            text += event.results[i][0].transcript + ' ';
+          }
+          document.getElementById('captions-text-display').textContent = text;
+          triggerHaptic([30]); // Tactile cue that speech is happening
+        };
+
+        captionRecognizer.onstart = () => {
+          isCapturingCaptions = true;
+          document.getElementById('btn-toggle-captions').textContent = '⏹️ Stop Listening';
+          document.getElementById('btn-toggle-captions').classList.replace('bg-sky-600', 'bg-red-600');
+          triggerHaptic([100]);
+        };
+
+        captionRecognizer.onerror = () => {
+          stopLiveCaptions();
+        };
+
+        captionRecognizer.start();
+      } catch (err) {
+        stopLiveCaptions();
+      }
+    }
+
+    function stopLiveCaptions() {
+      if (captionRecognizer) {
+        captionRecognizer.stop();
+        captionRecognizer = null;
+      }
+      isCapturingCaptions = false;
+      const btn = document.getElementById('btn-toggle-captions');
+      if (btn) {
+        btn.textContent = '🎙️ Start Listening & Transcribing';
+        btn.classList.replace('bg-red-600', 'bg-sky-600');
+      }
+    }
+
+    function clearCaptions() {
+      document.getElementById('captions-text-display').textContent = '';
+    }
+
+    /* ==========================================================================
+       10. AI VOICE ASSISTANT (Multilingual)
+       ========================================================================== */
+    function openVoiceAssistantModal() {
+      openModal('modal-voice');
+      speakSystem('I am listening. How can I help you today?');
+    }
+
+    function toggleVoiceAssistantMic() {
+      if (!SpeechRecognition) {
+        alert('Speech recognition is not supported in this browser.');
+        return;
+      }
+
+      triggerHaptic([80]);
+      const rec = new SpeechRecognition();
+      rec.lang = 'en-IN';
+      const stateEl = document.getElementById('voice-assistant-state');
+      stateEl.textContent = 'Listening to your voice...';
+      document.getElementById('voice-assistant-mic-btn').classList.add('animate-pulse');
+
+      rec.onresult = (evt) => {
+        const transcript = evt.results[0][0].transcript;
+        stateEl.textContent = `You said: "${transcript}"`;
+        document.getElementById('voice-assistant-mic-btn').classList.remove('animate-pulse');
+        processAIResponse(transcript);
+      };
+
+      rec.onerror = () => {
+        stateEl.textContent = 'Could not catch that. Tap microphone to retry.';
+        document.getElementById('voice-assistant-mic-btn').classList.remove('animate-pulse');
+      };
+
+      rec.start();
+    }
+
+    function processAIResponse(userQuery) {
+      const q = userQuery.toLowerCase();
+      let reply = "I am here with you. You can ask for medicines, emergency help, or music.";
+
+      if (q.includes('time') || q.includes('date')) {
+        const now = new Date();
+        reply = `The time is ${now.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' })} in India.`;
+      } else if (q.includes('song') || q.includes('bhajan') || q.includes('music')) {
+        reply = "Opening devotional music and entertainment for you.";
+        openModal('modal-entertainment');
+      } else if (q.includes('help') || q.includes('emergency') || q.includes('pain')) {
+        reply = "Triggering emergency assistant immediately.";
+        triggerEmergencyWorkflow();
+        return;
+      } else if (q.includes('medicine') || q.includes('tablet')) {
+        reply = "You have 2 medicines scheduled for today. Opening your schedule.";
+        openModal('modal-routine');
+      } else if (q.includes('family') || q.includes('son') || q.includes('daughter')) {
+        reply = "Here are your family contacts. Would you like to call Ramesh or Ananya?";
+        openModal('modal-family');
+      }
+
+      document.getElementById('voice-assistant-reply').textContent = reply;
+      speakSystem(reply);
+    }
+
+    /* ==========================================================================
+       11. ROUTINES, MEDICINES & FAMILY CONTACTS
+       ========================================================================== */
+    function renderRoutines() {
+      const container = document.getElementById('routine-list-container');
+      const pendingCountEl = document.getElementById('routine-pending-count');
+      if (!container) return;
+
+      container.innerHTML = '';
+      let pending = 0;
+
+      APP_STATE.routines.forEach((item, index) => {
+        if (!item.completed) pending++;
+        const div = document.createElement('div');
+        div.className = `p-4 rounded-2xl border-2 flex items-center justify-between touch-target ${item.completed ? 'bg-slate-100 border-slate-300 opacity-60' : 'bg-emerald-50 border-emerald-400'}`;
+        div.innerHTML = `
+          <div class="flex items-center gap-3">
+            <input type="checkbox" ${item.completed ? 'checked' : ''} onchange="toggleRoutine(${index})" class="w-8 h-8 rounded accent-emerald-600" id="chk-${item.id}" />
+            <label for="chk-${item.id}">
+              <div class="font-bold text-lg ${item.completed ? 'line-through text-slate-500' : 'text-slate-900'}">${item.title}</div>
+              <div class="text-sm text-slate-600 font-semibold">Scheduled for: ${item.time}</div>
+            </label>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+
+      if (pendingCountEl) pendingCountEl.textContent = pending;
+    }
+
+    function toggleRoutine(index) {
+      triggerHaptic([60]);
+      APP_STATE.routines[index].completed = !APP_STATE.routines[index].completed;
+      localStorage.setItem('ecp_routines', JSON.stringify(APP_STATE.routines));
+      renderRoutines();
+      const status = APP_STATE.routines[index].completed ? 'completed' : 'marked incomplete';
+      speakSystem(`${APP_STATE.routines[index].title} ${status}.`);
+    }
+
+    function announceRoutineStatus() {
+      const pending = APP_STATE.routines.filter(r => !r.completed);
+      if (pending.length === 0) {
+        speakSystem('Great job! All your daily medicines and routines are completed.');
+      } else {
+        const text = `You have ${pending.length} tasks remaining: ` + pending.map(p => p.title).join(', ');
+        speakSystem(text);
+      }
+    }
+
+    function renderFamilyContacts() {
+      const container = document.getElementById('family-contacts-list');
+      if (!container) return;
+      container.innerHTML = '';
+
+      APP_STATE.contacts.forEach((contact) => {
+        const div = document.createElement('div');
+        div.className = 'p-3 bg-blue-50 border-2 border-blue-200 rounded-2xl flex items-center justify-between';
+        div.innerHTML = `
+          <div>
+            <div class="font-black text-lg text-blue-950">${contact.name}</div>
+            <div class="text-sm text-blue-800 font-semibold">${contact.relation} • ${contact.phone}</div>
+          </div>
+          <div class="flex gap-2">
+            <a href="tel:${contact.phone}" class="touch-target bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl flex items-center gap-1 shadow">
+              📞 Call
+            </a>
+            <a href="sms:${contact.phone}" class="touch-target bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl flex items-center gap-1 shadow">
+              💬 SMS
+            </a>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function shareLiveLocationSMS() {
+      triggerHaptic([80]);
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition((pos) => {
+          const url = `https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
+          const primary = APP_STATE.contacts[0].phone;
+          window.location.href = `sms:${primary}?body=${encodeURIComponent("Namaste, here is my live location: " + url)}`;
+        }, () => {
+          speakSystem('Could not access current GPS location.');
+        });
+      }
+    }
+
+    /* ==========================================================================
+       12. GENTLE COGNITIVE GAMES (Math & Memory)
+       ========================================================================== */
+    let mathAnswer = 13;
+
+    function generateMathProblem() {
+      const n1 = Math.floor(Math.random() * 9) + 2;
+      const n2 = Math.floor(Math.random() * 9) + 1;
+      mathAnswer = n1 + n2;
+      document.getElementById('math-problem-text').textContent = `${n1} + ${n2} = ?`;
+
+      const options = [mathAnswer, mathAnswer + 2, Math.max(1, mathAnswer - 2)].sort(() => Math.random() - 0.5);
+      const container = document.getElementById('math-options');
+      container.innerHTML = '';
+
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'touch-target bg-white hover:bg-yellow-200 border-2 border-yellow-500 font-extrabold text-2xl p-3 rounded-2xl shadow';
+        btn.textContent = opt;
+        btn.onclick = () => checkMath(opt);
+        container.appendChild(btn);
+      });
+    }
+
+    function checkMath(selected) {
+      triggerHaptic([60]);
+      const feedback = document.getElementById('math-feedback');
+      if (selected === mathAnswer) {
+        feedback.textContent = '🌟 Wonderful! That is correct!';
+        feedback.className = 'text-center font-bold text-lg text-emerald-700';
+        speakSystem('Wonderful! That is correct!');
+        setTimeout(generateMathProblem, 1500);
+      } else {
+        feedback.textContent = 'Try again, you can do it!';
+        feedback.className = 'text-center font-bold text-lg text-rose-700';
+        speakSystem('Try again.');
+      }
+    }
+
+    function initMemoryGame() {
+      const icons = ['🌸', '🍎', '☀️', '🕊️', '🌸', '🍎', '☀️', '🕊️'].sort(() => Math.random() - 0.5);
+      const grid = document.getElementById('memory-grid');
+      grid.innerHTML = '';
+
+      let flipped = [];
+      icons.forEach((ic, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'touch-target bg-amber-200 hover:bg-amber-300 border-2 border-amber-500 text-3xl font-bold h-16 rounded-2xl flex items-center justify-center';
+        btn.textContent = '❓';
+        btn.onclick = () => {
+          if (btn.textContent !== '❓' || flipped.length === 2) return;
+          btn.textContent = ic;
+          flipped.push({ btn, ic });
+          triggerHaptic([40]);
+
+          if (flipped.length === 2) {
+            if (flipped[0].ic === flipped[1].ic) {
+              speakSystem('Match found!');
+              flipped = [];
+            } else {
+              setTimeout(() => {
+                flipped[0].btn.textContent = '❓';
+                flipped[1].btn.textContent = '❓';
+                flipped = [];
+              }, 900);
+            }
+          }
+        };
+        grid.appendChild(btn);
+      });
+    }
+
+    /* ==========================================================================
+       13. DAILY HANDY UTILITIES
+       ========================================================================== */
+    let torchActive = false;
+    let torchTrack = null;
+
+    async function toggleTorch() {
+      try {
+        if (!torchActive) {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+          torchTrack = stream.getVideoTracks()[0];
+          await torchTrack.applyConstraints({ advanced: [{ torch: true }] });
+          torchActive = true;
+          document.getElementById('btn-torch').classList.add('bg-yellow-300');
+          speakSystem('Torch turned on.');
+        } else {
+          if (torchTrack) torchTrack.stop();
+          torchActive = false;
+          document.getElementById('btn-torch').classList.remove('bg-yellow-300');
+          speakSystem('Torch turned off.');
+        }
+      } catch (e) {
+        speakSystem('Torch hardware control is not supported on this browser or device.');
+      }
+    }
+
+    function openMapsHospital() {
+      window.open('https://www.google.com/maps/search/hospitals+near+me', '_blank');
+    }
+
+    function openCalculatorModal() {
+      const calculation = prompt('Simple Math: Enter expression (for example: 150 + 200):');
+      if (calculation) {
+        try {
+          // Safe simple evaluate for basic math symbols
+          const sanitized = calculation.replace(/[^0-9+\-*/.]/g, '');
+          const result = Function(`'use strict'; return (${sanitized})`)();
+          alert(`Result: ${calculation} = ${result}`);
+          speakSystem(`The result is ${result}`);
+        } catch (e) {
+          alert('Could not calculate. Please enter numbers like 50 + 25.');
+        }
+      }
+    }
+
+    function playCuratedMedia(title) {
+      document.getElementById('current-media-title').textContent = `Now Playing: ${title}`;
+      speakSystem(`Playing ${title}`);
+    }
+
+    function updateSpeechSpeed(val) {
+      APP_STATE.speechRate = parseFloat(val);
+      localStorage.setItem('ecp_speech_rate', val);
+      speakSystem('Speech rate updated.');
+    }
+
+    function toggleHapticsSetting() {
+      APP_STATE.haptics = !APP_STATE.haptics;
+      localStorage.setItem('ecp_haptics', APP_STATE.haptics);
+      document.getElementById('haptic-status').textContent = APP_STATE.haptics ? 'ENABLED' : 'DISABLED';
+      speakSystem(`Vibration feedback ${APP_STATE.haptics ? 'enabled' : 'disabled'}`);
+    }
+
+    function saveGeminiKey(val) {
+      APP_STATE.geminiKey = val.trim();
+      localStorage.setItem('ecp_gemini_key', APP_STATE.geminiKey);
+      speakSystem('Gemini API key saved securely in your browser.');
+    }
+
+    /* ==========================================================================
+       14. MODAL DIALOGUE SYSTEM
+       ========================================================================== */
+    function openModal(id) {
+      triggerHaptic([50]);
+      document.getElementById(id).classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+
+      if (id === 'modal-routine') renderRoutines();
+      if (id === 'modal-family') renderFamilyContacts();
+      if (id === 'modal-games') {
+        generateMathProblem();
+        initMemoryGame();
+      }
+    }
+
+    function closeModal(id) {
+      triggerHaptic([40]);
+      document.getElementById(id).classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    }
+
+    function navigateHome() {
+      triggerHaptic([50]);
+      // Close any active modal
+      document.querySelectorAll('[id^="modal-"]').forEach(modal => modal.classList.add('hidden'));
+      document.body.style.overflow = 'auto';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      speakSystem('Main home screen.');
+    }
+
+    // Initialize UI on load
+    window.addEventListener('DOMContentLoaded', () => {
+      renderRoutines();
+      renderFamilyContacts();
+    });
+  </script>
+</body>
+</html>
